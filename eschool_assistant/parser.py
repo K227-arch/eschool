@@ -267,46 +267,70 @@ _ACCOMMODATION_MAP: dict[str, str] = {
 }
 
 
-def parse_school_detail(html: str) -> dict[str, str | None]:
+def parse_school_detail(html: str) -> dict[str, str | int | None]:
     """Parse a school detail page and return enrichment fields.
 
-    Returns a dict with keys: ``gender``, ``accommodation``,
-    ``curriculum``, ``religion``.  Each value is either a canonical
-    string or ``None`` when the field is not found on the page.
+    Returns a dict with keys:
+        ``gender``, ``accommodation``, ``curriculum``, ``religion``,
+        ``county``, ``min_fees_per_term``, ``max_fees_per_term``,
+        ``fees_available`` (True when real fees were found, False when
+        the school says "Contact for Fees").
 
-    The detail page uses a consistent pattern::
+    The detail page uses a consistent pattern for profile labels::
 
         <span class="... text-muted text-uppercase ...">Gender</span>
-        <!-- sibling or parent contains the value, e.g. "girls" -->
 
-    The full text of the parent container is "Gender girls", so we
-    strip the label and take the remainder as the value.
+    The full text of the parent container is e.g. "Gender girls".
+
+    For fees, the page shows either:
+    - A fee table with rows like "Day Tuition Fee | term | 32,400"
+    - An "Estimated Tuition Fee" label with value like "UGX 32,400"
+    - "Contact School for Fees" when fees are not published
     """
     soup = BeautifulSoup(html, "html.parser")
-    result: dict[str, str | None] = {
+    result: dict[str, str | int | None] = {
         "gender": None,
         "accommodation": None,
         "curriculum": None,
         "religion": None,
+        "county": None,
+        "min_fees_per_term": None,
+        "max_fees_per_term": None,
+        "fees_available": False,
     }
 
-    # Find all label spans using eSchool's consistent CSS class pattern
+    # ── Profile label/value pairs ─────────────────────────────────────────
     label_spans = soup.find_all(
         "span",
         class_=re.compile(r"text-muted", re.I),
-        string=re.compile(r"^\s*(Gender|Section|Curriculum|Religion)\s*$", re.I),
+        string=re.compile(
+            r"^\s*(Gender|Section|Curriculum|Religion)\s*$",
+            re.I,
+        ),
     )
+
+    # County & District uses a different CSS class (fw-bold text-dark)
+    county_label = soup.find(
+        "span",
+        string=re.compile(r"^\s*County\s*&\s*District\s*$", re.I),
+    )
+    if county_label:
+        # Value is in next sibling span
+        value_span = county_label.find_next_sibling("span")
+        if value_span:
+            county_text = value_span.get_text(strip=True)
+            # Format: "Rubaga Division North, Kampala" — take the part before the comma
+            county_part = county_text.split(",")[0].strip().upper()
+            if county_part:
+                result["county"] = county_part
 
     for span in label_spans:
         label = span.get_text(strip=True).lower()
-        # The value lives in the same parent container as the label
         parent = span.find_parent()
         if not parent:
             continue
 
-        # Full text of the container minus the label itself
         full_text = parent.get_text(" ", strip=True)
-        # Remove the label word from the start of the text
         value_raw = re.sub(
             r"^\s*" + re.escape(span.get_text(strip=True)) + r"\s*",
             "",
@@ -318,17 +342,14 @@ def parse_school_detail(html: str) -> dict[str, str | None]:
             continue
 
         if label == "gender":
-            # Normalise to canonical gender value
             result["gender"] = _GENDER_MAP.get(value_raw)
             if result["gender"] is None:
-                # Try partial match (e.g. "girls school" → "girls")
                 for key, val in _GENDER_MAP.items():
                     if key in value_raw:
                         result["gender"] = val
                         break
 
         elif label == "section":
-            # "Section" is eSchool's label for boarding/day
             result["accommodation"] = _ACCOMMODATION_MAP.get(value_raw)
             if result["accommodation"] is None:
                 for key, val in _ACCOMMODATION_MAP.items():
@@ -337,11 +358,78 @@ def parse_school_detail(html: str) -> dict[str, str | None]:
                         break
 
         elif label == "curriculum":
-            # Take the raw value capitalised (e.g. "UNEB", "Cambridge")
-            result["curriculum"] = value_raw.upper() if len(value_raw) <= 12 else value_raw.title()
+            result["curriculum"] = (
+                value_raw.upper() if len(value_raw) <= 12 else value_raw.title()
+            )
 
         elif label == "religion":
             result["religion"] = value_raw.title()
+
+    # ── Fees ─────────────────────────────────────────────────────────────
+    # Strategy 1: fee table rows
+    # Rows look like: "Day Tuition Fee - P1 to P7 | term | 32,400"
+    # or "Boarding Tuition Fee | term | 150,000"
+    fee_amounts: list[int] = []
+    for row in soup.find_all("tr"):
+        cells = [c.get_text(strip=True) for c in row.find_all(["td", "th"])]
+        if len(cells) >= 3:
+            # Check if this looks like a fee row (has "tuition" or "fees" keyword
+            # and a numeric amount in the last column)
+            row_text = " ".join(cells).lower()
+            if any(kw in row_text for kw in ["tuition", "fee", "fees"]):
+                # Try last or second-to-last cell for the amount
+                for cell in reversed(cells[-2:]):
+                    clean = cell.replace(",", "").replace(" ", "")
+                    if clean.isdigit():
+                        amt = int(clean)
+                        if amt >= 1000:  # ignore tiny amounts like 0 or 50
+                            fee_amounts.append(amt)
+                        break
+
+    # Strategy 2: "Estimated Tuition Fee" label value
+    if not fee_amounts:
+        est_label = soup.find(
+            "span",
+            class_=re.compile(r"text-muted", re.I),
+            string=re.compile(r"Estimated Tuition Fee", re.I),
+        )
+        if est_label:
+            parent = est_label.find_parent()
+            if parent:
+                # Look for next sibling that has a UGX amount
+                full = parent.get_text(" ", strip=True)
+                ugx_matches = re.findall(r"UGX\s*([\d,]+)", full)
+                for m in ugx_matches:
+                    amt = int(m.replace(",", ""))
+                    if amt >= 1000:
+                        fee_amounts.append(amt)
+
+    # Strategy 3: any UGX amounts in the page (fallback)
+    if not fee_amounts:
+        contact_text = soup.find(string=re.compile(r"Contact.*Fees|Contact School", re.I))
+        if not contact_text:
+            # No "contact for fees" → maybe fees are embedded elsewhere
+            all_ugx = re.findall(r"UGX\s*([\d,]+)", html)
+            for m in all_ugx:
+                amt = int(m.replace(",", ""))
+                if amt >= 1000:
+                    fee_amounts.append(amt)
+
+    # Determine if fees are genuinely available or just "contact us"
+    contact_fee = bool(soup.find(string=re.compile(r"Contact.*Fees|Contact School for Fees", re.I)))
+
+    if fee_amounts and not contact_fee:
+        result["fees_available"] = True
+        result["min_fees_per_term"] = min(fee_amounts)
+        result["max_fees_per_term"] = max(fee_amounts)
+    elif fee_amounts and contact_fee:
+        # Some schools list an admission fee alongside "contact for tuition"
+        # Only mark available if amounts are plausibly termly tuition (>5000)
+        plausible = [a for a in fee_amounts if a >= 5000]
+        if plausible:
+            result["fees_available"] = True
+            result["min_fees_per_term"] = min(plausible)
+            result["max_fees_per_term"] = max(plausible)
 
     logger.debug("Detail parse result: %s", result)
     return result

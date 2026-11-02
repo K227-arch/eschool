@@ -135,40 +135,123 @@ def _check_location(school: School, expected: str) -> CriterionCheck:
 
 
 def _check_county(school: School, expected: str) -> CriterionCheck:
-    """County/division is not shown on the card — filtered by search only."""
+    """Check county/division — CONFIRMED when detail page has the county."""
+    criterion = f"Division/County: {expected}"
+    expected_upper = expected.strip().upper()
+
+    if school.detail_fetched and school.county:
+        school_county = school.county.strip().upper()
+        if school_county == expected_upper:
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.CONFIRMED,
+                detail=f"School is in {school.county}.",
+            )
+        # Fuzzy: requested county is contained in the school's county string or vice versa
+        if expected_upper in school_county or school_county in expected_upper:
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.CONFIRMED,
+                detail=f"School is in {school.county} (matches '{expected}').",
+            )
+        return CriterionCheck(
+            criterion=criterion,
+            status=MatchStatus.NOT_MATCHING,
+            detail=f"School is in {school.county}, not {expected}.",
+        )
+
     return CriterionCheck(
-        criterion=f"Division/County: {expected}",
+        criterion=criterion,
         status=MatchStatus.UNKNOWN,
         detail=(
-            "The search filtered for this division, but the specific "
-            "division is not shown on the results card."
+            "The search filtered for this division. "
+            "County not yet verified from the school's detail page."
         ),
     )
 
 
 def _check_min_fees(school: School, min_fees: int) -> CriterionCheck:
-    """Fees are not shown on the card — filtered by search only."""
+    """Check minimum fees against detail-page data when available."""
+    criterion = f"Min fees: UGX {min_fees:,}"
+
+    if school.detail_fetched and school.fees_available:
+        # school.max_fees_per_term is the highest published fee
+        if school.max_fees_per_term is not None and school.max_fees_per_term >= min_fees:
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.CONFIRMED,
+                detail=(
+                    f"School fees (UGX {school.min_fees_per_term:,}–"
+                    f"{school.max_fees_per_term:,}) meet the minimum."
+                ),
+            )
+        if school.max_fees_per_term is not None and school.max_fees_per_term < min_fees:
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.NOT_MATCHING,
+                detail=(
+                    f"School max fee (UGX {school.max_fees_per_term:,}) "
+                    f"is below the requested minimum (UGX {min_fees:,})."
+                ),
+            )
+
+    if school.detail_fetched and not school.fees_available:
+        return CriterionCheck(
+            criterion=criterion,
+            status=MatchStatus.UNKNOWN,
+            detail="School does not publish fees — contact the school directly.",
+        )
+
     return CriterionCheck(
-        criterion=f"Min fees: UGX {min_fees:,}",
+        criterion=criterion,
         status=MatchStatus.UNKNOWN,
         detail=(
-            "Fees are not displayed on the search results card. "
-            "The search filtered for this minimum, but it cannot be "
-            "independently verified here."
+            "Fees not yet verified from the school's detail page. "
+            "The search filtered for this minimum."
         ),
     )
 
 
 def _check_max_fees(school: School, max_fees: int) -> CriterionCheck:
-    """Fees are not shown on the card — filtered by search only."""
+    """Check maximum fees against detail-page data when available."""
+    criterion = f"Max fees: UGX {max_fees:,}"
+
+    if school.detail_fetched and school.fees_available:
+        if school.min_fees_per_term is not None and school.min_fees_per_term <= max_fees:
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.CONFIRMED,
+                detail=(
+                    f"School's lowest fee (UGX {school.min_fees_per_term:,}) "
+                    f"is within your budget of UGX {max_fees:,}."
+                ),
+            )
+        if school.min_fees_per_term is not None and school.min_fees_per_term > max_fees:
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.NOT_MATCHING,
+                detail=(
+                    f"School's lowest fee (UGX {school.min_fees_per_term:,}) "
+                    f"exceeds your budget of UGX {max_fees:,}."
+                ),
+            )
+
+    if school.detail_fetched and not school.fees_available:
+        return CriterionCheck(
+            criterion=criterion,
+            status=MatchStatus.UNKNOWN,
+            detail=(
+                "School does not publish fees online. "
+                "Contact the school to confirm fees are within your budget."
+            ),
+        )
+
     return CriterionCheck(
-        criterion=f"Max fees: UGX {max_fees:,}",
+        criterion=criterion,
         status=MatchStatus.UNKNOWN,
         detail=(
-            "Fees are not displayed on the search results card. "
-            "The search filtered for this maximum, but it cannot be "
-            "independently verified here. Check the school's detail page "
-            "for actual fees."
+            "Fees not yet verified from the school's detail page. "
+            "The search filtered for this maximum."
         ),
     )
 

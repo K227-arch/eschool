@@ -116,3 +116,64 @@ class TestParseEmptyHtml:
         schools, _ = parse_search_results(html)
         assert len(schools) == 1
         assert schools[0].name == "Test School"
+
+
+class TestParseSchoolDetail:
+    """Tests for the detail-page parser (fees, county, gender, accommodation)."""
+
+    FEES_HTML = """<html><body>
+    <div><span class="text-muted d-block text-uppercase" style="font-size:0.65rem">Curriculum</span><span>UNEB</span></div>
+    <div><span class="text-muted d-block text-uppercase" style="font-size:0.65rem">Gender</span><span>mixed</span></div>
+    <div><span class="text-muted d-block text-uppercase" style="font-size:0.65rem">Section</span><span>Day &amp; Boarding</span></div>
+    <div><span class="text-muted d-block text-uppercase" style="font-size:0.65rem">Religion</span><span>Anglican</span></div>
+    <div><span class="fw-bold text-dark">County &amp; District</span>
+         <span class="text-muted small">Rubaga Division North, Kampala</span></div>
+    <table>
+      <tr><td>Day Tuition Fee - P1 to P7</td><td>term</td><td>32,400</td></tr>
+      <tr><td>Boarding Tuition Fee - P1 to P7</td><td>term</td><td>150,000</td></tr>
+    </table>
+    </body></html>"""
+
+    NO_FEES_HTML = """<html><body>
+    <div><span class="text-muted d-block text-uppercase" style="font-size:0.65rem">Gender</span><span>girls</span></div>
+    <div><span class="text-muted d-block text-uppercase" style="font-size:0.65rem">Section</span><span>Boarding</span></div>
+    <div><span class="fw-bold text-dark">County &amp; District</span>
+         <span class="text-muted small">Makindye Division West, Kampala</span></div>
+    <p>Contact School for Fees</p>
+    </body></html>"""
+
+    def test_fees_parsed_correctly(self):
+        from eschool_assistant.parser import parse_school_detail
+        result = parse_school_detail(self.FEES_HTML)
+        assert result["fees_available"] is True
+        assert result["min_fees_per_term"] == 32400
+        assert result["max_fees_per_term"] == 150000
+
+    def test_county_parsed(self):
+        from eschool_assistant.parser import parse_school_detail
+        result = parse_school_detail(self.FEES_HTML)
+        assert result["county"] == "RUBAGA DIVISION NORTH"
+
+    def test_no_fees_marked_unavailable(self):
+        from eschool_assistant.parser import parse_school_detail
+        result = parse_school_detail(self.NO_FEES_HTML)
+        assert result["fees_available"] is False
+        assert result["min_fees_per_term"] is None
+        assert result["max_fees_per_term"] is None
+
+    def test_county_in_no_fees_page(self):
+        from eschool_assistant.parser import parse_school_detail
+        result = parse_school_detail(self.NO_FEES_HTML)
+        assert result["county"] == "MAKINDYE DIVISION WEST"
+
+    def test_gender_and_accommodation(self):
+        from eschool_assistant.parser import parse_school_detail
+        result = parse_school_detail(self.FEES_HTML)
+        assert result["gender"] == "mixed"
+        assert result["accommodation"] == "Day & Boarding"
+
+    def test_girls_boarding_parsed(self):
+        from eschool_assistant.parser import parse_school_detail
+        result = parse_school_detail(self.NO_FEES_HTML)
+        assert result["gender"] == "girls"
+        assert result["accommodation"] == "Boarding"

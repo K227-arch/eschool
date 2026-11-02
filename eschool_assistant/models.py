@@ -141,6 +141,10 @@ class School(BaseModel):
     accommodation: Optional[str] = None  # "Boarding", "Day", "Day & Boarding"
     curriculum: Optional[str] = None    # e.g. "UNEB", "Cambridge"
     religion: Optional[str] = None      # e.g. "Catholic"
+    county: Optional[str] = None        # e.g. "RUBAGA DIVISION NORTH"
+    min_fees_per_term: Optional[int] = None  # minimum published termly fee (UGX)
+    max_fees_per_term: Optional[int] = None  # maximum published termly fee (UGX)
+    fees_available: bool = False         # True when real fee amounts were found
     detail_fetched: bool = False         # True once the detail page was parsed
 
 

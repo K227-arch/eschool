@@ -283,6 +283,7 @@ HTML = """<!DOCTYPE html>
     .badge-gender-boys         { background: #BEE3F8; color: #2C5282; }
     .badge-gender-mixed        { background: #E9D8FD; color: #553C9A; }
     .badge-accommodation       { background: #C6F6D5; color: #276749; }
+    .badge-fees                { background: #FEFCBF; color: #744210; font-weight: 600; }
 
     /* Match checks — collapsible on mobile */
     .checks {
@@ -543,6 +544,13 @@ HTML = """<!DOCTYPE html>
         {% endif %}
         {% if school.accommodation %}
           <span><span class="badge badge-accommodation">🏠 {{ school.accommodation }}</span></span>
+        {% endif %}
+        {% if school.fees_available and school.min_fees_per_term %}
+          {% if school.min_fees_per_term == school.max_fees_per_term %}
+            <span><span class="badge badge-fees">💰 UGX {{ "{:,}".format(school.min_fees_per_term) }}/term</span></span>
+          {% else %}
+            <span><span class="badge badge-fees">💰 UGX {{ "{:,}".format(school.min_fees_per_term) }}–{{ "{:,}".format(school.max_fees_per_term) }}/term</span></span>
+          {% endif %}
         {% endif %}
         {% if school.rating %}
           <span><span class="badge badge-rating">★ {{ school.rating }}</span></span>

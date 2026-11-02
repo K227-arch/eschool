@@ -214,3 +214,110 @@ class TestMultipleCriteria:
         assert MatchStatus.NOT_MATCHING in statuses  # location
         assert MatchStatus.CONFIRMED in statuses  # level
         assert MatchStatus.UNKNOWN in statuses  # fees
+
+
+class TestFeesMatchingWithDetailData:
+    """Fees checks use detail-page data when available."""
+
+    def _school_with_fees(self, min_f, max_f):
+        return make_school(
+            min_fees_per_term=min_f,
+            max_fees_per_term=max_f,
+            fees_available=True,
+            detail_fetched=True,
+        )
+
+    def _school_no_fees(self):
+        return make_school(fees_available=False, detail_fetched=True)
+
+    def test_max_fees_confirmed_when_within_budget(self):
+        school = self._school_with_fees(32400, 150000)
+        criteria = SearchCriteria(max_fees=200000)
+        checks = match_school(school, criteria)
+        fee = [c for c in checks if "Max fees" in c.criterion][0]
+        assert fee.status == MatchStatus.CONFIRMED
+        assert "32,400" in fee.detail
+
+    def test_max_fees_not_matching_when_over_budget(self):
+        school = self._school_with_fees(32400, 150000)
+        criteria = SearchCriteria(max_fees=20000)
+        checks = match_school(school, criteria)
+        fee = [c for c in checks if "Max fees" in c.criterion][0]
+        assert fee.status == MatchStatus.NOT_MATCHING
+        assert "32,400" in fee.detail
+
+    def test_max_fees_unknown_when_fees_not_published(self):
+        school = self._school_no_fees()
+        criteria = SearchCriteria(max_fees=500000)
+        checks = match_school(school, criteria)
+        fee = [c for c in checks if "Max fees" in c.criterion][0]
+        assert fee.status == MatchStatus.UNKNOWN
+        assert "contact" in fee.detail.lower()
+
+    def test_min_fees_confirmed(self):
+        school = self._school_with_fees(50000, 200000)
+        criteria = SearchCriteria(min_fees=30000)
+        checks = match_school(school, criteria)
+        fee = [c for c in checks if "Min fees" in c.criterion][0]
+        assert fee.status == MatchStatus.CONFIRMED
+
+    def test_min_fees_not_matching_when_below_minimum(self):
+        school = self._school_with_fees(500000, 800000)
+        criteria = SearchCriteria(min_fees=1000000)
+        checks = match_school(school, criteria)
+        fee = [c for c in checks if "Min fees" in c.criterion][0]
+        assert fee.status == MatchStatus.NOT_MATCHING
+
+
+class TestCountyMatchingWithDetailData:
+    """County checks use detail-page data when available."""
+
+    def test_county_confirmed_when_matches(self):
+        school = make_school(county="RUBAGA DIVISION NORTH", detail_fetched=True)
+        criteria = SearchCriteria(county="RUBAGA DIVISION NORTH")
+        checks = match_school(school, criteria)
+        cty = [c for c in checks if "Division" in c.criterion][0]
+        assert cty.status == MatchStatus.CONFIRMED
+
+    def test_county_not_matching_when_different(self):
+        school = make_school(county="NAKAWA DIVISION", detail_fetched=True)
+        criteria = SearchCriteria(county="KAMPALA CENTRAL DIVISION")
+        checks = match_school(school, criteria)
+        cty = [c for c in checks if "Division" in c.criterion][0]
+        assert cty.status == MatchStatus.NOT_MATCHING
+
+    def test_county_fuzzy_match(self):
+        school = make_school(county="RUBAGA DIVISION NORTH", detail_fetched=True)
+        criteria = SearchCriteria(county="RUBAGA DIVISION")
+        checks = match_school(school, criteria)
+        cty = [c for c in checks if "Division" in c.criterion][0]
+        assert cty.status == MatchStatus.CONFIRMED
+
+    def test_county_unknown_when_not_yet_fetched(self):
+        school = make_school(county=None, detail_fetched=False)
+        criteria = SearchCriteria(county="KAMPALA CENTRAL DIVISION")
+        checks = match_school(school, criteria)
+        cty = [c for c in checks if "Division" in c.criterion][0]
+        assert cty.status == MatchStatus.UNKNOWN
+
+
+class TestConfigCountyMap:
+    """Verify the expanded COUNTY_MAP covers all major districts."""
+
+    def test_all_major_districts_present(self):
+        from eschool_assistant.config import COUNTY_MAP
+        for district in ["KAMPALA", "WAKISO", "MUKONO", "JINJA", "MBARARA",
+                         "GULU", "LIRA", "MBALE", "MASAKA", "HOIMA"]:
+            assert district in COUNTY_MAP, f"{district} missing from COUNTY_MAP"
+
+    def test_kampala_has_8_divisions(self):
+        from eschool_assistant.config import COUNTY_MAP
+        assert len(COUNTY_MAP["KAMPALA"]) == 8
+
+    def test_jinja_has_counties(self):
+        from eschool_assistant.config import COUNTY_MAP
+        assert len(COUNTY_MAP["JINJA"]) >= 3
+
+    def test_total_coverage(self):
+        from eschool_assistant.config import COUNTY_MAP
+        assert len(COUNTY_MAP) >= 50, "Expected at least 50 districts with counties"

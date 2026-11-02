@@ -102,8 +102,9 @@ def enrich_schools(
     """
     needs_gender = criteria.gender is not None
     needs_accommodation = criteria.accommodation is not None
-    if not needs_gender and not needs_accommodation:
-        logger.debug("Skipping enrichment — neither gender nor accommodation specified")
+    needs_fees = criteria.min_fees is not None or criteria.max_fees is not None
+    if not needs_gender and not needs_accommodation and not needs_fees:
+        logger.debug("Skipping enrichment — no gender/accommodation/fees criteria")
         return
 
     enriched = 0
@@ -137,6 +138,10 @@ def _apply_detail(school, data: dict) -> None:
     school.accommodation = data.get("accommodation")
     school.curriculum = data.get("curriculum")
     school.religion = data.get("religion")
+    school.county = data.get("county")
+    school.min_fees_per_term = data.get("min_fees_per_term")
+    school.max_fees_per_term = data.get("max_fees_per_term")
+    school.fees_available = bool(data.get("fees_available"))
     school.detail_fetched = True
 
 
