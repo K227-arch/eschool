@@ -1,0 +1,389 @@
+
+╔══════════════════════════════════════════════════════════════════════╗
+║                   eSCHOOL ASSISTANT — DEMONSTRATION                  ║
+║       Three example scenarios from Section 3E of the assessment      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+========================================================================
+  EXAMPLE 1: Clearly Specified Search Criteria
+========================================================================
+
+  PARENT REQUEST:
+  "I'm looking for a girls' boarding school in Kampala, preferably around Central Division, charging no more than UGX 1 million per term and currently admitting Senior One students."
+
+════════════════════════════════════════════════════════════
+  eSCHOOL SEARCH RESULTS
+════════════════════════════════════════════════════════════
+
+  Interpreted search criteria:
+  ────────────────────────────────────────
+    Location: KAMPALA
+    Division/County: KAMPALA CENTRAL DIVISION
+    Max fees: UGX 1,000,000 per term
+    Gender: girls
+    Accommodation: Boarding
+    School level(s): Secondary
+
+  Could not search for (not supported by eSchool):
+    - currently admitting Senior One students
+  ────────────────────────────────────────
+
+  Notes:
+    • Interpreted '1M' as max 1,000,000 UGX per term
+    • Assumed 'Central Division' refers to Kampala Central Division
+    • The following cannot be searched for on eSchool and were not applied as filters: currently admitting Senior One students
+    • Showing results from page 1 of 2. More results may be available on later pages.
+
+  Search URL: https://eschool.ug/find-schools/search?location=KAMPALA&county=KAMPALA+CENTRAL+DIVISION&max_fees=1000000&gender=girls&accomadation=Boarding&levels%5B%5D=Secondary
+
+  Found 24 school(s) on page 1 of 2
+
+  1. The Hungry Caterpillar Primary School
+     https://eschool.ug/find-schools?slug=the-hungry-caterpillar-primary-school
+     Nursery & Primary | Kampala | ★ 4.3 | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  2. Lohana Academy
+     https://eschool.ug/find-schools?slug=lohana-academy
+     Primary | Kampala | ★ 4.2 | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  3. Newfield International Christian
+     https://eschool.ug/find-schools?slug=newfield-international-christian-2
+     International | Kampala | ★ 4.0 | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is International, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  4. 7hills International School
+     https://eschool.ug/find-schools?slug=7hills-international-school
+     International | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is International, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  5. Aga Khan High School
+     https://eschool.ug/find-schools?slug=aga-khan-high-school-2
+     Secondary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✓ School level: Secondary: School level: Secondary.
+     → Match (all checks passed; 4 could not be independently verified)
+
+  6. Aga Khan Primary School
+     https://eschool.ug/find-schools?slug=aga-khan-primary-school-2
+     Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  7. Buganda Road Primary School
+     https://eschool.ug/find-schools?slug=buganda-road-primary-school
+     Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  8. Daffodils Primary School
+     https://eschool.ug/find-schools?slug=daffodils-primary-school
+     Nursery & Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  9. Elami International Christian School
+     https://eschool.ug/find-schools?slug=elami-international-christian-school
+     International | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is International, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  10. Future Leaders International School
+     https://eschool.ug/find-schools?slug=future-leaders-international-school
+     International | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is International, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  11. Hormisdallen School Kamwokya
+     https://eschool.ug/find-schools?slug=hormisdallen-school-kamwokya
+     Nursery & Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  12. Kampala Academy
+     https://eschool.ug/find-schools?slug=kampala-academy
+     Nursery & Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  13. Kampala High School
+     https://eschool.ug/find-schools?slug=kampala-high-school-2
+     Secondary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✓ School level: Secondary: School level: Secondary.
+     → Match (all checks passed; 4 could not be independently verified)
+
+  14. Kampala Junior Academy – Kitante
+     https://eschool.ug/find-schools?slug=kampala-junior-academy-kitante
+     Nursery & Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  15. Kampala Kindergarten  Association
+     https://eschool.ug/find-schools?slug=kampala-kindergarten-association
+     Nursery & Kindergaten | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Kindergaten, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  16. Kampala Secondary School
+     https://eschool.ug/find-schools?slug=kampala-secondary-school
+     Secondary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✓ School level: Secondary: School level: Secondary.
+     → Match (all checks passed; 4 could not be independently verified)
+
+  17. Kitante Hill Secondary School
+     https://eschool.ug/find-schools?slug=kitante-hill-secondary-school-2
+     Secondary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✓ School level: Secondary: School level: Secondary.
+     → Match (all checks passed; 4 could not be independently verified)
+
+  18. Kitante Primary School
+     https://eschool.ug/find-schools?slug=kitante-primary-school-2
+     Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  19. Kololo High School
+     https://eschool.ug/find-schools?slug=kololo-high-school
+     Secondary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✓ School level: Secondary: School level: Secondary.
+     → Match (all checks passed; 4 could not be independently verified)
+
+  20. Kololo Senior Secondary School
+     https://eschool.ug/find-schools?slug=kololo-senior-secondary-school-2
+     Secondary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✓ School level: Secondary: School level: Secondary.
+     → Match (all checks passed; 4 could not be independently verified)
+
+  21. Little Wonders Primary School
+     https://eschool.ug/find-schools?slug=little-wonders-primary-school-2
+     Nursery & Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  22. Mengo Senior School
+     https://eschool.ug/find-schools?slug=mengo-senior-school-3
+     Secondary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✓ School level: Secondary: School level: Secondary.
+     → Match (all checks passed; 4 could not be independently verified)
+
+  23. Nakivubo Primary School
+     https://eschool.ug/find-schools?slug=nakivubo-primary-school
+     Nursery & Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+  24. Noble Care Nursery And Primary School
+     https://eschool.ug/find-schools?slug=noble-care-nursery-and-primary-school
+     Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Division/County: KAMPALA CENTRAL DIVISION: The search filtered for this division, but the specific division is not shown on the results card.
+     ? Max fees: UGX 1,000,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Gender: Girls only: Gender is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+────────────────────────────────────────────────────────────
+  Summary: 7 fully matching, 17 with caveats
+────────────────────────────────────────────────────────────
+
+
+========================================================================
+  EXAMPLE 2: Missing or Ambiguous Information
+========================================================================
+
+  PARENT REQUEST:
+  "somewhere affordable near town"
+
+────────────────────────────────────────────────────────────
+  CLARIFICATION NEEDED
+────────────────────────────────────────────────────────────
+
+  I'd like to help you find a school! Could you tell me: which district or area you're looking in (e.g. Kampala, Wakiso), and what level of school you need (nursery, primary, secondary)? 'Affordable' is also relative — do you have a rough budget per term?
+
+  Interpreted search criteria:
+  ────────────────────────────────────────
+    (no specific criteria extracted)
+  ────────────────────────────────────────
+  Notes:
+    • 'near town' is too vague to map to a specific district
+    • 'affordable' has no numeric budget specified
+
+
+========================================================================
+  EXAMPLE 3: Request That Returns No Suitable Results
+========================================================================
+
+  PARENT REQUEST:
+  "boarding secondary school in Kampala charging no more than UGX 5,000 per term"
+
+════════════════════════════════════════════════════════════
+  eSCHOOL SEARCH RESULTS
+════════════════════════════════════════════════════════════
+
+  Interpreted search criteria:
+  ────────────────────────────────────────
+    Location: KAMPALA
+    Max fees: UGX 5,000 per term
+    Accommodation: Boarding
+    School level(s): Secondary
+  ────────────────────────────────────────
+
+  Notes:
+    • Note: UGX 5,000 per term is extremely low for a boarding secondary school and may return very few or no results.
+
+  Search URL: https://eschool.ug/find-schools/search?location=KAMPALA&max_fees=5000&accomadation=Boarding&levels%5B%5D=Secondary
+
+  Found 2 school(s) on page 1
+
+  1. Better View Nursery And Primary School
+     https://eschool.ug/find-schools?slug=better-view-nursery-and-primary-school
+     Nursery & Primary | Wakiso | Admissions Closed
+     ✗ Location: KAMPALA: School is in Wakiso, not KAMPALA. It appeared because eSchool's location search includes nearby areas.
+     ? Max fees: UGX 5,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (2 criterion/criteria not met)
+
+  2. Kampala Standard Primary School Kyanja
+     https://eschool.ug/find-schools?slug=kampala-standard-primary-school-kyanja
+     Nursery & Primary | Kampala | Admissions Closed
+     ✓ Location: KAMPALA: School is in Kampala.
+     ? Max fees: UGX 5,000: Fees are not displayed on the search results card. The search filtered for this maximum, but it cannot be independently verified here. Check the school's detail page for actual fees.
+     ? Accommodation: Boarding: Boarding/day status is not shown on the results card. The search filtered for this, but it cannot be independently verified here.
+     ✗ School level: Secondary: School level is Nursery & Primary, which doesn't match the requested level(s).
+     → Partial mismatch (1 criterion/criteria not met)
+
+────────────────────────────────────────────────────────────
+  Summary: 0 fully matching, 2 with caveats
+  No schools fully confirmed all criteria. See the notes above for what could not be verified.
+────────────────────────────────────────────────────────────
+
+========================================================================
+  END OF DEMONSTRATION
+========================================================================
+
+  To run with a real OpenAI API key:
+    1. Copy .env.example to .env and add your OPENAI_API_KEY
+    2. Run: python -m eschool_assistant "your search request"
+    Or enter interactive mode: python -m eschool_assistant
+
