@@ -189,6 +189,19 @@ def _normalise_fees(
     warnings: list[str],
     notes: list[str],
 ) -> tuple[int | None, int | None]:
+    # Coerce string to int if the model returned "1000000" instead of 1000000
+    if isinstance(min_fees, str):
+        try:
+            min_fees = int(min_fees.replace(",", ""))
+        except ValueError:
+            min_fees = None
+
+    if isinstance(max_fees, str):
+        try:
+            max_fees = int(max_fees.replace(",", ""))
+        except ValueError:
+            max_fees = None
+
     if min_fees is not None and min_fees < 0:
         warnings.append("Minimum fees cannot be negative; it was removed.")
         min_fees = None

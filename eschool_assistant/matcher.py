@@ -174,15 +174,38 @@ def _check_max_fees(school: School, max_fees: int) -> CriterionCheck:
 
 
 def _check_gender(school: School, expected: str) -> CriterionCheck:
-    """Gender is not shown on the card — filtered by search only."""
+    """Check gender — CONFIRMED/NOT_MATCHING when detail page was fetched,
+    UNKNOWN (filter-only) otherwise."""
     label = {"mixed": "Mixed (co-education)", "boys": "Boys only", "girls": "Girls only"}
+    criterion = f"Gender: {label.get(expected, expected)}"
+
+    if school.detail_fetched and school.gender is not None:
+        if school.gender.lower() == expected.lower():
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.CONFIRMED,
+                detail=f"School detail page confirms: {school.gender}.",
+            )
+        else:
+            label_actual = label.get(school.gender, school.gender)
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.NOT_MATCHING,
+                detail=f"School is {label_actual}, not {label.get(expected, expected)}.",
+            )
+
+    if school.detail_fetched and school.gender is None:
+        return CriterionCheck(
+            criterion=criterion,
+            status=MatchStatus.UNKNOWN,
+            detail="Gender not listed on the school's detail page.",
+        )
+
     return CriterionCheck(
-        criterion=f"Gender: {label.get(expected, expected)}",
+        criterion=criterion,
         status=MatchStatus.UNKNOWN,
         detail=(
-            "Gender is not shown on the results card. "
-            "The search filtered for this, but it cannot be independently "
-            "verified here."
+            "Gender filter was applied, but not yet verified from the detail page."
         ),
     )
 
@@ -236,15 +259,45 @@ def _check_admission_status(school: School, expected: str) -> CriterionCheck:
 
 
 def _check_accommodation(school: School, expected: str) -> CriterionCheck:
-    """Accommodation (boarding/day) is not shown on the card."""
+    """Check accommodation — CONFIRMED/NOT_MATCHING when detail page was
+    fetched, UNKNOWN otherwise."""
+    criterion = f"Accommodation: {expected}"
+
+    if school.detail_fetched and school.accommodation is not None:
+        # Exact match
+        if school.accommodation.lower() == expected.lower():
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.CONFIRMED,
+                detail=f"School detail page confirms: {school.accommodation}.",
+            )
+        # "Day & Boarding" satisfies both "Boarding" and "Day" requests
+        if school.accommodation == "Day & Boarding" and expected in ("Boarding", "Day"):
+            return CriterionCheck(
+                criterion=criterion,
+                status=MatchStatus.CONFIRMED,
+                detail=(
+                    f"School is {school.accommodation}, which includes "
+                    f"{expected} option."
+                ),
+            )
+        return CriterionCheck(
+            criterion=criterion,
+            status=MatchStatus.NOT_MATCHING,
+            detail=f"School is {school.accommodation}, not {expected}.",
+        )
+
+    if school.detail_fetched and school.accommodation is None:
+        return CriterionCheck(
+            criterion=criterion,
+            status=MatchStatus.UNKNOWN,
+            detail="Accommodation/boarding status not listed on detail page.",
+        )
+
     return CriterionCheck(
-        criterion=f"Accommodation: {expected}",
+        criterion=criterion,
         status=MatchStatus.UNKNOWN,
-        detail=(
-            "Boarding/day status is not shown on the results card. "
-            "The search filtered for this, but it cannot be independently "
-            "verified here."
-        ),
+        detail="Accommodation filter was applied, not yet verified from detail page.",
     )
 
 

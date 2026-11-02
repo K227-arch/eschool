@@ -279,6 +279,10 @@ HTML = """<!DOCTYPE html>
     .badge-open   { background: #C6F6D5; color: #22543D; }
     .badge-closed { background: #FED7D7; color: #742A2A; }
     .badge-rating { background: #FEFCBF; color: #744210; }
+    .badge-gender-girls        { background: #FED7E2; color: #97266D; }
+    .badge-gender-boys         { background: #BEE3F8; color: #2C5282; }
+    .badge-gender-mixed        { background: #E9D8FD; color: #553C9A; }
+    .badge-accommodation       { background: #C6F6D5; color: #276749; }
 
     /* Match checks — collapsible on mobile */
     .checks {
@@ -477,13 +481,13 @@ HTML = """<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Notes -->
+    <!-- Notes — only shown when there's something genuinely useful to tell the user -->
     {% for note in notes %}
-      {% if 'rule-based' in note.lower() %}
-        <div class="note mode"><span class="note-icon">ℹ</span><span>{{ note }}</span></div>
-      {% elif 'cannot' in note.lower() or 'not applied' in note.lower() or 'no schools' in note.lower() %}
+      {% if 'cannot' in note.lower() or 'not applied' in note.lower() or 'no schools' in note.lower() or 'removed' in note.lower() or 'widening' in note.lower() %}
         <div class="note"><span class="note-icon">⚠</span><span>{{ note }}</span></div>
-      {% else %}
+      {% elif 'page' in note.lower() and 'of' in note.lower() %}
+        <div class="note info"><span class="note-icon">ℹ</span><span>{{ note }}</span></div>
+      {% elif note %}
         <div class="note info"><span class="note-icon">ℹ</span><span>{{ note }}</span></div>
       {% endif %}
     {% endfor %}
@@ -527,6 +531,18 @@ HTML = """<!DOCTYPE html>
         {% endif %}
         {% if school.location %}
           <span>📍 {{ school.location }}</span>
+        {% endif %}
+        {% if school.gender %}
+          {% if school.gender == 'girls' %}
+            <span><span class="badge badge-gender-girls">👧 Girls</span></span>
+          {% elif school.gender == 'boys' %}
+            <span><span class="badge badge-gender-boys">👦 Boys</span></span>
+          {% else %}
+            <span><span class="badge badge-gender-mixed">👫 Mixed</span></span>
+          {% endif %}
+        {% endif %}
+        {% if school.accommodation %}
+          <span><span class="badge badge-accommodation">🏠 {{ school.accommodation }}</span></span>
         {% endif %}
         {% if school.rating %}
           <span><span class="badge badge-rating">★ {{ school.rating }}</span></span>

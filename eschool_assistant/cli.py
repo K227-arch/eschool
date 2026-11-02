@@ -1,24 +1,4 @@
-"""CLI — command-line interface for the eSchool Assistant.
-
-Usage
------
-::
-
-    # One-shot search
-    python -m eschool_assistant "I'm looking for a girls' boarding school in Kampala"
-
-    # Interactive mode
-    python -m eschool_assistant
-
-    # Via the installed entry point
-    eschool-search "mixed primary school in Wakiso"
-
-Environment
------------
-Works out of the box.  If ``OPENAI_API_KEY`` is set, the AI interpreter
-is used; otherwise a built-in rule-based interpreter handles common
-requests.  See ``.env.example`` for all options.
-"""
+"""CLI — command-line interface for the eSchool Assistant."""
 
 from __future__ import annotations
 
@@ -26,6 +6,14 @@ import argparse
 import logging
 import os
 import sys
+
+# Ensure UTF-8 output on Windows (for ✓ ✗ ? symbols)
+if sys.stdout.encoding and sys.stdout.encoding.lower() not in ("utf-8", "utf8"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from dotenv import load_dotenv
 
@@ -88,17 +76,9 @@ def _run_search(request: str, max_pages: int) -> int:
 def _interactive_loop(max_pages: int) -> int:
     """Run an interactive prompt loop."""
     import os
-    has_groq = bool(os.getenv("GROQ_API_KEY"))
-    has_openai = bool(os.getenv("OPENAI_API_KEY"))
-    if has_groq:
-        key_status = "AI mode (Groq)"
-    elif has_openai:
-        key_status = "AI mode (OpenAI)"
-    else:
-        key_status = "rule-based mode (no API key)"
+    has_key = bool(os.getenv("GROQ_API_KEY") or os.getenv("OPENAI_API_KEY"))
     print("=" * 60)
     print("  eSchool Assistant — Interactive Mode")
-    print(f"  Interpretation: {key_status}")
     print("  Type your school search request, or 'quit' to exit.")
     print("=" * 60)
     print()

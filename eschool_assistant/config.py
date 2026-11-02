@@ -25,7 +25,11 @@ DEFAULT_TEMPERATURE = 0.0  # deterministic extraction
 
 # Groq defaults (OpenAI-compatible API)
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
-GROQ_DEFAULT_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+# gpt-oss-120b gives best extraction quality among available Groq models;
+# allam-2-7b is the fastest fallback.
+GROQ_DEFAULT_MODEL = os.getenv("GROQ_MODEL", "allam-2-7b")
+GROQ_CONNECT_TIMEOUT = 15
+GROQ_READ_TIMEOUT    = 120
 
 # ── Valid dropdown values (mirrors the live search form) ──────────────────
 

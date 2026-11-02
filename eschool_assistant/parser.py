@@ -241,3 +241,107 @@ def _extract_total_pages(soup) -> int | None:
             if max_page is None or page_num > max_page:
                 max_page = page_num
     return max_page
+
+
+# ── Detail-page parser ────────────────────────────────────────────────────
+# Maps the label text on the detail page to the canonical value we store.
+_GENDER_MAP: dict[str, str] = {
+    "girls": "girls",
+    "girls only": "girls",
+    "boys": "boys",
+    "boys only": "boys",
+    "mixed": "mixed",
+    "co-education": "mixed",
+    "co-ed": "mixed",
+    "both": "mixed",
+}
+
+_ACCOMMODATION_MAP: dict[str, str] = {
+    "boarding": "Boarding",
+    "boarding only": "Boarding",
+    "day": "Day",
+    "day only": "Day",
+    "day school": "Day",
+    "day & boarding": "Day & Boarding",
+    "day and boarding": "Day & Boarding",
+}
+
+
+def parse_school_detail(html: str) -> dict[str, str | None]:
+    """Parse a school detail page and return enrichment fields.
+
+    Returns a dict with keys: ``gender``, ``accommodation``,
+    ``curriculum``, ``religion``.  Each value is either a canonical
+    string or ``None`` when the field is not found on the page.
+
+    The detail page uses a consistent pattern::
+
+        <span class="... text-muted text-uppercase ...">Gender</span>
+        <!-- sibling or parent contains the value, e.g. "girls" -->
+
+    The full text of the parent container is "Gender girls", so we
+    strip the label and take the remainder as the value.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    result: dict[str, str | None] = {
+        "gender": None,
+        "accommodation": None,
+        "curriculum": None,
+        "religion": None,
+    }
+
+    # Find all label spans using eSchool's consistent CSS class pattern
+    label_spans = soup.find_all(
+        "span",
+        class_=re.compile(r"text-muted", re.I),
+        string=re.compile(r"^\s*(Gender|Section|Curriculum|Religion)\s*$", re.I),
+    )
+
+    for span in label_spans:
+        label = span.get_text(strip=True).lower()
+        # The value lives in the same parent container as the label
+        parent = span.find_parent()
+        if not parent:
+            continue
+
+        # Full text of the container minus the label itself
+        full_text = parent.get_text(" ", strip=True)
+        # Remove the label word from the start of the text
+        value_raw = re.sub(
+            r"^\s*" + re.escape(span.get_text(strip=True)) + r"\s*",
+            "",
+            full_text,
+            flags=re.I,
+        ).strip().lower()
+
+        if not value_raw:
+            continue
+
+        if label == "gender":
+            # Normalise to canonical gender value
+            result["gender"] = _GENDER_MAP.get(value_raw)
+            if result["gender"] is None:
+                # Try partial match (e.g. "girls school" → "girls")
+                for key, val in _GENDER_MAP.items():
+                    if key in value_raw:
+                        result["gender"] = val
+                        break
+
+        elif label == "section":
+            # "Section" is eSchool's label for boarding/day
+            result["accommodation"] = _ACCOMMODATION_MAP.get(value_raw)
+            if result["accommodation"] is None:
+                for key, val in _ACCOMMODATION_MAP.items():
+                    if key in value_raw:
+                        result["accommodation"] = val
+                        break
+
+        elif label == "curriculum":
+            # Take the raw value capitalised (e.g. "UNEB", "Cambridge")
+            result["curriculum"] = value_raw.upper() if len(value_raw) <= 12 else value_raw.title()
+
+        elif label == "religion":
+            result["religion"] = value_raw.title()
+
+    logger.debug("Detail parse result: %s", result)
+    return result

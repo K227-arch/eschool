@@ -2,130 +2,164 @@
 
 An AI-powered school search assistant for [eSchool Uganda](https://eschool.ug).
 Parents describe the kind of school they're looking for in natural language;
-the assistant interprets the request, queries eSchool's existing search
-functionality, and presents the results honestly — including what it could
-and could not verify.
+the assistant interprets the request, queries eSchool's live search, and
+presents results honestly — including what it could and could not verify.
 
 Built for the **Halvek Technologies AI Engineer Take-Home Assessment**.
+
+---
+
+## Quick start
+
+### 1. Clone and install
+
+```bash
+git clone https://github.com/K227-arch/eschool.git
+cd eschool
+pip install -e ".[dev]"
+```
+
+### 2. Configure an API key (optional but recommended)
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env`:
+
+```env
+# Option A — Groq (free tier, no credit card needed)
+# Get a key at: https://console.groq.com/keys
+GROQ_API_KEY=gsk_your_key_here
+
+# Option B — OpenAI
+# OPENAI_API_KEY=sk-your_key_here
+
+# No key? Leave both blank — rule-based mode works out of the box.
+```
+
+### 3. Run
+
+**Web UI:**
+```bash
+python -m eschool_assistant --web
+# Open http://localhost:5000
+```
+
+**CLI:**
+```bash
+python -m eschool_assistant "secondary schools in Kampala"
+python -m eschool_assistant "girls boarding school in Wakiso, max 500,000"
+python -m eschool_assistant "mixed primary in Mukono, admissions open"
+```
+
+**Demo (no API key, no network — uses saved snapshots):**
+```bash
+python -m eschool_assistant.demo
+```
+
+**Tests:**
+```bash
+python -m pytest eschool_assistant/tests/ -v
+# 148 tests, all mocked — no API calls, no network needed
+```
 
 ---
 
 ## How it works
 
 ```
-Parent's request (natural language)
+Parent request (natural language)
         │
         ▼
-┌──────────────────┐
-│  Interpreter (AI) │  ← LLM extracts structured criteria (JSON, temp=0)
-└────────┬─────────┘
-         │  SearchCriteria
-         ▼
-┌──────────────────┐
-│    Validator      │  ← normalises & validates against real eSchool filters
-└────────┬─────────┘
-         │  cleaned SearchCriteria + warnings
-         ▼
-┌──────────────────┐
-│  Client (URL +   │  ← builds query string, fetches HTML with retries/timeouts
-│  fetch)          │
-└────────┬─────────┘
-         │  HTML
-         ▼
-┌──────────────────┐
-│     Parser       │  ← BeautifulSoup extracts school cards from HTML
-└────────┬─────────┘
-         │  list[School]
-         ▼
-┌──────────────────┐
-│     Matcher       │  ← deterministic: ✓ confirmed / ✗ not matching / ? unknown
-└────────┬─────────┘
-         │  list[SchoolMatchResult]
-         ▼
-┌──────────────────┐
-│    Presenter      │  ← formats results for the user
-└──────────────────┘
+┌─────────────────────────┐
+│  Interpreter            │  Groq AI / OpenAI / rule-based (auto-selected)
+│  text → SearchCriteria  │  temperature=0  |  compact prompt for small models
+└──────────┬──────────────┘
+           │  SearchCriteria (JSON)
+           ▼
+┌─────────────────────────┐
+│  Validator              │  normalise + validate against real eSchool filters
+└──────────┬──────────────┘
+           │  cleaned criteria
+           ▼
+┌─────────────────────────┐
+│  Client                 │  build URL → fetch HTML (retries, timeouts)
+└──────────┬──────────────┘
+           │  HTML
+           ▼
+┌─────────────────────────┐
+│  Parser                 │  extract school cards
+│  + detail enrichment    │  fetch gender / boarding from detail pages
+└──────────┬──────────────┘
+           │  list[School]
+           ▼
+┌─────────────────────────┐
+│  Location filter        │  remove schools from wrong district
+└──────────┬──────────────┘
+           │
+           ▼
+┌─────────────────────────┐
+│  Matcher                │  ✓ confirmed / ✗ not matching / ? unknown
+└──────────┬──────────────┘
+           │  list[SchoolMatchResult]  ranked best-first
+           ▼
+┌─────────────────────────┐
+│  Presenter / Web UI     │  CLI text output or Flask web app
+└─────────────────────────┘
 ```
 
-The AI is used **only** for interpreting the request. Everything else — URL
-building, fetching, parsing, matching, and presenting — is deterministic code.
-The LLM never sees school data and never searches for schools.
+The AI interprets language only. All searching, parsing, matching, and
+ranking is deterministic code.
 
 ---
 
-## Quick start
+## Interpretation modes
 
-### Prerequisites
+| Mode | When active | Notes |
+|------|-------------|-------|
+| **Groq AI** (`allam-2-7b`) | `GROQ_API_KEY` set | Free tier, ~1s response |
+| **OpenAI** (`gpt-4o-mini`) | `OPENAI_API_KEY` set (Groq takes priority) | Requires paid credits |
+| **Rule-based** | No key set, or AI unreachable | Handles all standard requests |
 
-- Python 3.11+
-- An OpenAI API key (or any OpenAI-compatible provider)
-
-### Installation
-
-```bash
-git clone <your-repo-url>
-cd eschool-assistant
-pip install -e ".[dev]"
-```
-
-### Configuration
-
-```bash
-cp .env.example .env
-# Edit .env and add your OpenAI API key
-```
-
-### Running
-
-**One-shot mode:**
-
-```bash
-python -m eschool_assistant "I'm looking for a girls' boarding school in Kampala, max 1 million per term"
-```
-
-**Interactive mode:**
-
-```bash
-python -m eschool_assistant
-```
-
-Then type search requests at the `Search>` prompt.
-
-**Via installed entry point (after `pip install -e .`):**
-
-```bash
-eschool-search "mixed primary school in Wakiso"
-```
-
-**Additional options:**
-
-```bash
-python -m eschool_assistant --help
-# --max-pages N   Fetch up to N result pages (default: 1)
-# --verbose       Enable debug logging
-```
-
-### Demonstration (no API key needed)
-
-```bash
-python -m eschool_assistant.demo
-```
-
-This runs three pre-built examples using mock data:
-
-1. A clearly specified request (the assessment's example)
-2. An ambiguous request that triggers a clarifying question
-3. A request with criteria too narrow to return results
+If Groq is set but temporarily unreachable, the pipeline silently falls back
+to rule-based so the app never shows an error to the user.
 
 ---
 
-## Running tests
+## What's verified vs. filtered-only
 
-```bash
-python -m pytest eschool_assistant/tests/ -v
-```
+eSchool's search result cards only show **name, level, location, rating, and
+admission status**. The pipeline enriches results by fetching each school's
+detail page for gender and boarding.
 
-All 148 tests pass with no external dependencies (LLM and HTTP are mocked).
+| Criterion | Source | Status shown |
+|-----------|--------|--------------|
+| Location (district) | Search card | ✓ or ✗ confirmed |
+| School level | Search card | ✓ or ✗ confirmed |
+| Admission status | Search card | ✓ or ✗ confirmed |
+| Gender | Detail page (fetched) | ✓ or ✗ confirmed |
+| Accommodation (boarding/day) | Detail page (fetched) | ✓ or ✗ confirmed |
+| Fees | Filter only | ? cannot verify from page |
+| County/division | Filter only | ? cannot verify from card |
+| Curriculum, facilities, religion | Filter only | ? cannot verify from card |
+
+---
+
+## Key features
+
+- **Strict location filtering** — eSchool's search leaks nearby districts
+  (e.g. Wakiso, Mukono when you search Kampala). The pipeline removes those
+  and tells you how many were filtered out.
+- **Smart ranking** — fully confirmed matches first, then matches with
+  unknowns, then mismatches. Within each tier, sorted by rating.
+- **5-minute cache** — repeated identical searches return instantly.
+- **Broadening fallback** — if a county-level search returns nothing, the
+  pipeline widens to district level automatically.
+- **Hallucination guard** — for small Groq models, fields like levels,
+  accommodation, and unsupported_criteria are cross-checked against the
+  actual request text before being used.
+- **Auto fallback** — Groq unreachable → rule-based mode, no error shown.
 
 ---
 
@@ -133,67 +167,55 @@ All 148 tests pass with no external dependencies (LLM and HTTP are mocked).
 
 ```
 eschool_assistant/
-├── __init__.py
-├── config.py          # Valid filter values, location/county mappings, aliases
-├── models.py          # Pydantic models: SearchCriteria, School, MatchResult, etc.
-├── interpreter.py      # AI: parent text → SearchCriteria (JSON via OpenAI)
-├── validator.py        # Normalise & validate AI output against known filters
-├── client.py           # Build search URL + fetch HTML (timeouts, retries, typed errors)
-├── parser.py           # HTML → School objects (BeautifulSoup)
-├── matcher.py          # Deterministic: ✓/✗/? check of each school vs criteria
-├── pipeline.py         # Orchestrates the full flow
-├── presenter.py        # Formats results for display
-├── cli.py              # Command-line interface (argparse + interactive)
-├── demo.py             # Demonstration script (3 examples, no API key needed)
+├── config.py           # Filter values, county maps, Groq/OpenAI settings
+├── models.py           # Pydantic models: SearchCriteria, School, MatchResult …
+├── interpreter.py      # AI: text → SearchCriteria (Groq/OpenAI, temp=0)
+├── rule_interpreter.py # Regex fallback interpreter (no API key needed)
+├── validator.py        # Normalise AI output against real eSchool filter values
+├── client.py           # URL builder + HTML fetcher (retries, typed errors)
+├── parser.py           # HTML → School objects + detail-page enrichment
+├── matcher.py          # ✓/✗/? checks per criterion per school
+├── pipeline.py         # Full flow: interpret → validate → fetch → match → rank
+├── presenter.py        # CLI text output formatter
+├── app.py              # Responsive Flask web UI
+├── cli.py              # argparse CLI (one-shot + interactive)
+├── demo.py             # 3 offline demo examples (no key/network needed)
 └── tests/
-    ├── conftest.py      # Shared fixtures (mock LLM, mock HTTP, fixture loading)
-    ├── test_models.py
-    ├── test_interpreter.py
-    ├── test_validator.py
-    ├── test_client.py
-    ├── test_parser.py
-    ├── test_matcher.py
-    ├── test_pipeline.py
-    └── fixtures/       # Saved HTML from eschool.ug for testing
+    ├── conftest.py     # Mock LLM + HTTP fixtures
+    ├── test_*.py       # 148 tests covering every module
+    └── fixtures/       # Saved HTML snapshots from eschool.ug
 ```
 
 ---
 
-## Key design decisions
+## Available search filters
 
-- **AI only interprets, never searches.** The LLM extracts structured criteria;
-  all searching, parsing, and matching is deterministic. This keeps the AI's
-  role minimal and testable.
-- **Honest matching with three statuses.** Every criterion gets ✓ (confirmed
-  from card data), ✗ (does not match card data), or ? (filtered by search but
-  not visible on the card). We never claim a school meets a requirement we
-  can't verify.
-- **Specified vs. unspecified.** Fields the parent didn't mention are `null`,
-  so we never silently apply defaults.
-- **No secrets in the repo.** API keys go in `.env` (gitignored). Use
-  `.env.example` as a template.
-
-See [DESIGN.md](DESIGN.md) for the full design explanation.
+| Filter | Values |
+|--------|--------|
+| Location | 67 Ugandan districts (e.g. KAMPALA, WAKISO, GULU) |
+| County/division | Depends on district |
+| Max/min fees per term | UGX integer |
+| Gender | `mixed`, `boys`, `girls` |
+| School level | Nursery & Kindergaten, Nursery & Primary, Primary, Secondary, International |
+| Admission status | `open`, `closed` |
+| Accommodation | `Boarding`, `Day`, `Day & Boarding` |
+| Curriculum | UNEB, Cambridge, IB, Montessori, Islamic, Other |
+| Facilities | Science Labs, Computer Lab, Library, Sports Facilities … |
+| Religion | Catholic, Church of Uganda, SDA, Pentecostal, Islamic … |
 
 ---
 
-## Assumptions and limitations
+## Limitations
 
-- **HTML scraping, no JSON API.** eSchool's search returns server-rendered
-  HTML. We parse it with BeautifulSoup. If the site changes its HTML
-  structure, the parser will need updating.
-- **Limited card data.** Search result cards show name, level, rating,
-  location, and admission status — but **not** fees, gender, or boarding
-  status. These are applied as search filters but cannot be independently
-  verified from the card. The matcher reports them as "?" (unknown).
-- **County options are location-dependent.** We pre-build county mappings for
-  Kampala, Wakiso, and Mukono. For other locations, county values are passed
-  through without validation (the search will simply return no results for
-  an invalid county).
-- **First page only by default.** The search returns 24 results per page. By
-  default we fetch only page 1. Use `--max-pages N` to fetch more.
-- **robots.txt compliance.** eSchool's robots.txt allows general crawling
-  (`Allow: /`) with `search=yes`. We respect this by making reasonable,
-  rate-limited requests and not training AI models on the content.
-- **No backend/database access.** As stated in the brief, we work only with
-  the public search page.
+- **HTML scraping** — no public JSON API. The parser will need updating if
+  eSchool changes its HTML structure.
+- **Fees not verifiable** — not shown on any public page; applied as filter only.
+- **County pre-built for Kampala, Wakiso, Mukono only** — other districts
+  pass through unvalidated.
+- **Page 1 only by default** — 24 results per page; use `--max-pages N` for more.
+- **Groq model quality** — `allam-2-7b` is the best free Groq model available.
+  The compact prompt + hallucination guard keeps output clean for standard requests.
+- **robots.txt** — `eschool.ug` allows crawling (`Allow: /`, `search=yes`).
+  Requests are rate-limited and detail pages are cached for 1 hour.
+
+See [DESIGN.md](DESIGN.md) for the full design explanation.

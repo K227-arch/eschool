@@ -58,7 +58,6 @@ class SearchCriteria(BaseModel):
     # Fees (UGX per term)
     min_fees: Optional[int] = Field(None, description="Minimum fees in UGX per term")
     max_fees: Optional[int] = Field(None, description="Maximum fees in UGX per term")
-
     # Single-value filters
     gender: Optional[str] = Field(None, description="'mixed', 'boys', or 'girls'")
     admission_status: Optional[str] = Field(
@@ -117,17 +116,32 @@ class SearchCriteria(BaseModel):
 
 # ── School (parsed from the search-results HTML) ──────────────────────────
 class School(BaseModel):
-    """A single school card parsed from the eSchool search results page."""
+    """A single school card parsed from the eSchool search results page.
+
+    Fields populated from the *search results card* (always available):
+        name, slug, url, school_id, level, rating, location,
+        admission_status, image_url
+
+    Fields populated from the *school detail page* (via enrichment):
+        gender, accommodation, curriculum, religion, detail_fetched
+    """
 
     name: str
     slug: str
     url: str
     school_id: Optional[str] = None
-    level: Optional[str] = None       # e.g. "Secondary", "Primary"
-    rating: Optional[float] = None   # e.g. 4.3, None when "0.0"
-    location: Optional[str] = None   # district shown on the card
-    admission_status: Optional[str] = None  # "Admissions Closed", "Open for 2026" …
+    level: Optional[str] = None        # e.g. "Secondary", "Primary"
+    rating: Optional[float] = None     # e.g. 4.3; None when "0.0" / no ratings
+    location: Optional[str] = None     # district shown on the card
+    admission_status: Optional[str] = None  # "Admissions Closed", "Open for 2026"
     image_url: Optional[str] = None
+
+    # ── Detail-page fields (populated by enrich_schools) ─────────────────
+    gender: Optional[str] = None        # "girls", "boys", "mixed"
+    accommodation: Optional[str] = None  # "Boarding", "Day", "Day & Boarding"
+    curriculum: Optional[str] = None    # e.g. "UNEB", "Cambridge"
+    religion: Optional[str] = None      # e.g. "Catholic"
+    detail_fetched: bool = False         # True once the detail page was parsed
 
 
 # ── Criterion check result ────────────────────────────────────────────────

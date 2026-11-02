@@ -29,7 +29,7 @@ from .models import (
     SearchCriteria,
     SearchResponse,
 )
-from .parser import parse_search_results
+from .parser import parse_search_results, parse_school_detail
 from .rule_interpreter import RuleBasedInterpreter
 from .validator import validate
 
@@ -58,9 +58,86 @@ def _store(key: str, response: SearchResponse) -> None:
     _CACHE[key] = (response, time.time())
 
 
+# ── Detail-page enrichment ────────────────────────────────────────────────
+_ENRICH_MAX = 12      # max detail-page fetches per search call
+_ENRICH_TTL = 3600    # cache detail pages for 1 hour
+
+_DETAIL_CACHE: dict[str, tuple[dict, float]] = {}
+
+
+def _detail_cached(slug: str) -> dict | None:
+    entry = _DETAIL_CACHE.get(slug)
+    if entry and (time.time() - entry[1]) < _ENRICH_TTL:
+        return entry[0]
+    if entry:
+        del _DETAIL_CACHE[slug]
+    return None
+
+
+def _store_detail(slug: str, data: dict) -> None:
+    _DETAIL_CACHE[slug] = (data, time.time())
+
+
 def clear_cache() -> None:
-    """Clear the search cache (useful in tests or after content updates)."""
+    """Clear all caches — search results and detail pages."""
     _CACHE.clear()
+    _DETAIL_CACHE.clear()
+
+
+def enrich_schools(
+    results: list,
+    criteria,
+    http_client=None,
+    timeout: int = DEFAULT_TIMEOUT,
+    max_enrich: int = _ENRICH_MAX,
+) -> None:
+    """Fetch detail pages for the top results and fill in gender/accommodation.
+
+    Mutates each ``SchoolMatchResult.school`` in-place — sets ``gender``,
+    ``accommodation``, ``curriculum``, ``religion``, and ``detail_fetched``.
+
+    Only runs when the parent specified gender or accommodation (the two
+    criteria that need detail-page data to be confirmed or rejected).
+    Caps at ``max_enrich`` HTTP requests to keep the response time reasonable.
+    """
+    needs_gender = criteria.gender is not None
+    needs_accommodation = criteria.accommodation is not None
+    if not needs_gender and not needs_accommodation:
+        logger.debug("Skipping enrichment — neither gender nor accommodation specified")
+        return
+
+    enriched = 0
+    for result in results:
+        if enriched >= max_enrich:
+            break
+        school = result.school
+        if school.detail_fetched:
+            continue
+
+        # Detail cache hit
+        cached = _detail_cached(school.slug)
+        if cached:
+            _apply_detail(school, cached)
+            continue
+
+        # Live fetch
+        try:
+            detail_html = fetch(school.url, client=http_client, timeout=timeout)
+            detail_data = parse_school_detail(detail_html)
+            _store_detail(school.slug, detail_data)
+            _apply_detail(school, detail_data)
+            enriched += 1
+        except Exception as exc:
+            logger.warning("Detail fetch failed for %s: %s", school.slug, exc)
+            school.detail_fetched = True  # don't retry this session
+
+
+def _apply_detail(school, data: dict) -> None:
+    school.gender = data.get("gender")
+    school.accommodation = data.get("accommodation")
+    school.curriculum = data.get("curriculum")
+    school.religion = data.get("religion")
+    school.detail_fetched = True
 
 
 # ── Result ranking ────────────────────────────────────────────────────────
@@ -127,7 +204,6 @@ def _fetch_schools(
     cache_key = _cache_key(search_url)
     cached = _cached(cache_key)
     if cached:
-        notes.append("Results loaded from cache (under 5 minutes old).")
         return cached.schools, cached.total_pages, search_url, None
 
     try:
@@ -207,29 +283,46 @@ def search_schools(
         mode = "injected"
 
     notes: list[str] = []
-    if mode == "rule-based":
-        notes.append(
-            "Running in rule-based mode (no API key set). "
-            "Add OPENAI_API_KEY or GROQ_API_KEY for full AI interpretation."
-        )
+    # Rule-based mode runs silently — no banner shown to the user.
+    # The mode is visible in the web UI header badge and CLI interactive prompt.
 
     # ── 1. Interpret ─────────────────────────────────────────────────────
     try:
         raw_criteria = interpreter.interpret(request)
     except (LLMError, ValueError) as exc:
-        logger.error("Interpretation failed: %s", exc)
-        return SearchResponse(
-            status=InterpretationStatus.OK,
-            criteria=SearchCriteria(),
-            error=str(exc),
-            notes=notes + ["Could not understand the request. Please try rephrasing."],
-        )
+        # If AI fails (network block, API down), try rule-based silently
+        if mode in ("AI (Groq)", "AI"):
+            logger.warning("AI interpreter failed (%s), falling back to rule-based: %s", mode, exc)
+            from .rule_interpreter import RuleBasedInterpreter
+            try:
+                raw_criteria = RuleBasedInterpreter().interpret(request)
+                mode = "rule-based (AI fallback)"
+            except (ValueError, Exception) as exc2:
+                logger.error("Rule-based fallback also failed: %s", exc2)
+                return SearchResponse(
+                    status=InterpretationStatus.OK,
+                    criteria=SearchCriteria(),
+                    error=str(exc2),
+                    notes=notes,
+                )
+        else:
+            logger.error("Interpretation failed: %s", exc)
+            return SearchResponse(
+                status=InterpretationStatus.OK,
+                criteria=SearchCriteria(),
+                error=str(exc),
+                notes=notes,
+            )
 
     # ── 2. Validate ──────────────────────────────────────────────────────
     validation = validate(raw_criteria)
     criteria = validation.criteria
+    # Only show warnings that are genuinely useful to the user
+    # (e.g. "invalid location", "min > max fees").
+    # Internal technical notes like "Matched county X → Y" run silently.
     notes.extend(validation.warnings)
-    notes.extend(criteria.interpretation_notes)
+    # interpretation_notes (e.g. "Interpreted 1M as 1,000,000") are kept on
+    # the criteria object for the design explanation but not shown in the UI.
 
     # ── 3. Clarification needed? ─────────────────────────────────────────
     if criteria.clarifying_question and not criteria.has_any_criteria:
@@ -309,6 +402,22 @@ def search_schools(
         notes.append(
             "No schools found matching your criteria. " + hint
         )
+
+    # ── 7b. Enrich with detail-page data (gender, accommodation) ────────
+    # Only fetches detail pages when the parent asked for gender or
+    # accommodation — and only for the schools that survived filtering.
+    if criteria.gender or criteria.accommodation:
+        enrich_schools(
+            match_results,
+            criteria,
+            http_client=http_client,
+            timeout=timeout,
+        )
+        # Re-run the matcher on enriched schools so checks use the new data
+        for result in match_results:
+            result.checks = match_school(result.school, criteria)
+        # Re-rank with the now-confirmed/not-matching gender/accommodation checks
+        match_results = _rank(match_results)
 
     # ── 8. Cache the response ────────────────────────────────────────────
     response = SearchResponse(
